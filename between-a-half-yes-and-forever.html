@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Between A Half Yes and Forever</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #fdf6ee;
+    --deep: #1a0a0a;
+    --rose: #c8506a;
+    --blush: #f0c4cc;
+    --gold: #c9a96e;
+    --muted: #7a5c5c;
+    --ink: #2e1a1a;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--deep);
+    font-family: 'Lato', sans-serif;
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--d) infinite ease-in-out alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.1; }
+    to { opacity: 0.7; }
+  }
+
+  /* Navigation dots */
+  .nav-dots {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+  }
+  .nav-dot.active {
+    background: var(--rose);
+    transform: scale(1.4);
+  }
+  .nav-dot:hover { background: var(--blush); }
+
+  /* Page system */
+  .book {
+    position: relative;
+    z-index: 1;
+  }
+
+  .page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    position: relative;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .page.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Cover page */
+  .page-cover {
+    background: radial-gradient(ellipse at 50% 40%, #3d1a2a 0%, #1a0a0a 70%);
+    flex-direction: column;
+    text-align: center;
+    gap: 0;
+  }
+  .page-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 30%, rgba(200,80,106,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(201,169,110,0.1) 0%, transparent 50%);
+  }
+
+  .cover-ornament {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    opacity: 0.8;
+  }
+
+  .cover-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 8vw, 88px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--cream);
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .cover-title em {
+    color: var(--rose);
+    font-style: italic;
+  }
+
+  .cover-line {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 32px auto;
+  }
+
+  .cover-subtitle {
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--blush);
+    text-transform: uppercase;
+    font-weight: 300;
+    line-height: 1.9;
+    max-width: 400px;
+    margin: 0 auto 48px;
+    opacity: 0.8;
+  }
+
+  .cover-dedication {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-style: italic;
+    color: var(--rose);
+    margin-top: 16px;
+  }
+
+  .cover-author {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-top: 12px;
+    opacity: 0.7;
+  }
+
+  .cover-heart {
+    font-size: 48px;
+    display: block;
+    margin: 32px auto;
+    animation: pulse 2.5s infinite ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.12); opacity: 1; }
+  }
+
+  /* Scroll hint */
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.5;
+    animation: bounce 2s infinite;
+    cursor: pointer;
+  }
+  .scroll-hint span { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
+  .scroll-hint::after {
+    content: '↓';
+    font-size: 18px;
+    color: var(--gold);
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* Inner pages */
+  .page-inner {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+  }
+  .page-inner:nth-child(even) { background: #140808; }
+  .page-inner:nth-child(odd) { background: #1a0a0a; }
+
+  .page-card {
+    max-width: 620px;
+    width: 100%;
+    position: relative;
+  }
+
+  .page-number {
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0.6;
+  }
+
+  .page-icon {
+    font-size: 36px;
+    margin-bottom: 24px;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(200,80,106,0.4));
+  }
+
+  .page-chapter {
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--rose);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+
+  .page-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 5vw, 54px);
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1.15;
+    margin-bottom: 32px;
+  }
+  .page-heading em {
+    color: var(--rose);
+    font-style: italic;
+  }
+
+  .divider {
+    width: 50px;
+    height: 1px;
+    background: linear-gradient(to right, var(--rose), transparent);
+    margin-bottom: 32px;
+  }
+
+  .page-body {
+    font-size: 16px;
+    line-height: 1.95;
+    color: rgba(253,246,238,0.75);
+    font-weight: 300;
+  }
+  .page-body p { margin-bottom: 20px; }
+  .page-body p:last-child { margin-bottom: 0; }
+
+  .highlight {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--blush);
+    line-height: 1.6;
+    border-left: 2px solid var(--rose);
+    padding-left: 20px;
+    margin: 28px 0;
+    opacity: 0.9;
+  }
+
+  /* Special birthday page */
+  .page-birthday {
+    background: radial-gradient(ellipse at 50% 50%, #3d1020 0%, #1a0008 60%, #0a0004 100%) !important;
+    text-align: center;
+  }
+  .page-birthday .page-card { text-align: center; }
+  .page-birthday .divider { margin-left: auto; margin-right: auto; background: linear-gradient(to right, transparent, var(--rose), transparent); width: 80px; }
+  .page-birthday .page-body { color: rgba(253,246,238,0.8); }
+
+  .birthday-signature {
+    margin-top: 48px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--gold);
+  }
+
+  .birthday-hearts {
+    margin: 32px 0;
+    font-size: 28px;
+    letter-spacing: 8px;
+    animation: pulse 2s infinite;
+  }
+
+  /* Page turn decorative element */
+  .page-corner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-top: 1px solid rgba(201,169,110,0.2);
+    border-right: 1px solid rgba(201,169,110,0.2);
+  }
+
+  /* Rose petals floating animation */
+  .petal {
+    position: fixed;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    animation: fallPetal var(--fall-d) linear var(--fall-delay) infinite;
+  }
+  @keyframes fallPetal {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .nav-dots { display: none; }
+    .page-heading { font-size: 32px; }
+    .cover-title { font-size: 42px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Starfield -->
+<div class="stars" id="stars"></div>
+
+<!-- Rose petals -->
+<div id="petals"></div>
+
+<!-- Navigation dots -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<div class="book" id="book">
+
+  <!-- COVER -->
+  <div class="page page-cover" id="page-0">
+    <div style="position:relative; text-align:center; z-index:1; max-width:600px;">
+      <div class="cover-ornament">A Story by Shabaz</div>
+      <h1 class="cover-title">Between A <em>Half Yes</em><br>and Forever</h1>
+      <div class="cover-line"></div>
+      <p class="cover-subtitle">A story about quiet beginnings,<br>brave confessions,<br>and the night everything changed.</p>
+      <span class="cover-heart">❤️</span>
+      <p class="cover-dedication">Happy Birthday, Fathima</p>
+      <p class="cover-author">— Always yours, Shabaz</p>
+    </div>
+    <div class="scroll-hint" onclick="scrollToPage(1)"><span>Begin</span></div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page page-inner" id="page-1">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter One</p>
+      <span class="page-icon">⭐</span>
+      <p class="page-chapter">The First Day</p>
+      <h2 class="page-heading">Every story begins with a <em>moment</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>Every story begins with a moment that seems ordinary at first.</p>
+        <p>It was a Friday — my joining day at school. The classroom was filled with colours, laughter, and unfamiliar faces.</p>
+        <div class="highlight">And then I saw you.</div>
+        <p>Brown top. Black pants.</p>
+        <p>In a class of forty-four students, you were impossible to ignore.</p>
+        <p>I didn't know it then… but my story had already started.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3 -->
+  <div class="page page-inner" id="page-2">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Two</p>
+      <span class="page-icon">🎒</span>
+      <p class="page-chapter">A Silent Feeling</p>
+      <h2 class="page-heading">A boy who fell in love <em>too quickly</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>You were the most beautiful girl in the class.</p>
+        <p>And I was just a boy who fell in love too quickly.</p>
+        <p>You didn't like me much. Sometimes you didn't even want to see my face.</p>
+        <div class="highlight">But feelings don't disappear just because they are one-sided.</div>
+        <p>So I carried mine quietly… inside my heart.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 4 -->
+  <div class="page page-inner" id="page-3">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Three</p>
+      <span class="page-icon">💭</span>
+      <p class="page-chapter">Loving From Distance</p>
+      <h2 class="page-heading">Like <em>breathing</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>Days turned into years.</p>
+        <p>I never fully expressed what I felt, but somehow you always knew.</p>
+        <p>Maybe that's why things felt complicated.</p>
+        <p>Still, every year my feelings only grew stronger.</p>
+        <div class="highlight">Loving you became something natural — like breathing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 5 -->
+  <div class="page page-inner" id="page-4">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Four</p>
+      <span class="page-icon">🎭</span>
+      <p class="page-chapter">The Question</p>
+      <h2 class="page-heading">Truth and <em>Dare</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>In 10th standard, during a game of truth and dare, someone asked:</p>
+        <div class="highlight">"Do you love anyone?"</div>
+        <p>I froze.</p>
+        <p>Fear filled my mind — fear of rejection, fear of heartbreak.</p>
+        <p>So I made a promise instead.</p>
+        <p><em style="color:var(--blush); font-family:'Cormorant Garamond',serif; font-size:18px;">"I will say the name on the last day of school."</em></p>
+        <p style="margin-top:20px;">And from that moment, time felt heavier.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 6 -->
+  <div class="page page-inner" id="page-5">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Five</p>
+      <span class="page-icon">❤️</span>
+      <p class="page-chapter">The Farewell</p>
+      <h2 class="page-heading">You wore <em>red</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>10th March. Our farewell.</p>
+        <p>You wore red, and somehow the entire room felt brighter.</p>
+        <p>At the end of the day, my friends reminded me of my promise.</p>
+        <p>You had already left.</p>
+        <p>And maybe that gave me the courage.</p>
+        <div class="highlight">"I love Fathima."</div>
+        <p>For the first time, my secret became real.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 7 -->
+  <div class="page page-inner" id="page-6">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Six</p>
+      <span class="page-icon">📞</span>
+      <p class="page-chapter">The Unexpected Call</p>
+      <h2 class="page-heading">Life sometimes <em>surprises</em> us</h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>I went home expecting nothing.</p>
+        <p>The next morning, my phone rang.</p>
+        <p>My friend said, "She wants to talk to you."</p>
+        <p>I didn't believe it.</p>
+        <p>I thought it was a joke.</p>
+        <div class="highlight">But life sometimes surprises us in ways we never imagine.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 8 -->
+  <div class="page page-inner" id="page-7">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Seven</p>
+      <span class="page-icon">🚲</span>
+      <p class="page-chapter">Returning</p>
+      <h2 class="page-heading">Something beautiful was already <em>happening</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>I returned to school on my bicycle, without expectations.</p>
+        <p>Everyone looked at me differently.</p>
+        <p>Everyone smiled.</p>
+        <p>But I couldn't even look up properly.</p>
+        <div class="highlight">"I don't want to create any problems."</div>
+        <p>And yet… something beautiful was already happening.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 9 -->
+  <div class="page page-inner" id="page-8">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Eight</p>
+      <span class="page-icon">🌌</span>
+      <p class="page-chapter">The Half Yes</p>
+      <h2 class="page-heading">At 9 PM, you said <em>yes</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>That morning you gave me a half yes.</p>
+        <p>Later, I didn't even have the courage to message you.</p>
+        <p>But you messaged me first.</p>
+        <p>You asked me to propose again.</p>
+        <div class="highlight">And at 9 PM, you said yes.</div>
+        <p>In that moment, time stopped.</p>
+        <p>Goosebumps covered my skin. Tears filled my eyes.</p>
+        <p>For the first time, I felt like I was truly someone's special person.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 10 -->
+  <div class="page page-inner" id="page-9">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Nine</p>
+      <span class="page-icon">🤍</span>
+      <p class="page-chapter">Becoming Us</p>
+      <h2 class="page-heading">Best friends who <em>chose</em> each other</h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>After that night, everything changed.</p>
+        <p>I became more understanding. More patient. More aware of what love truly means.</p>
+        <p>You often put more effort than me — and I noticed that.</p>
+        <div class="highlight">Our relationship became something rare: deep emotional connection, cute teasing, best friends who chose each other.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 11 -->
+  <div class="page page-inner" id="page-10">
+    <div class="page-card">
+      <div class="page-corner"></div>
+      <p class="page-number">Chapter Ten</p>
+      <span class="page-icon">🧙</span>
+      <p class="page-chapter">Our World</p>
+      <h2 class="page-heading">Our own <em>universe</em></h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>We created our own universe.</p>
+        <p>Imaginary witches. Vampires. Stories only we understand.</p>
+        <p>At first, I loved you for your beauty.</p>
+        <div class="highlight">Today, I love you for your maturity, your understanding, and the way you love me without conditions.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIRTHDAY PAGE -->
+  <div class="page page-inner page-birthday" id="page-11">
+    <div class="page-card">
+      <p class="page-number" style="text-align:center; letter-spacing:6px;">The Final Page</p>
+      <span class="page-icon" style="display:block; text-align:center; font-size:48px;">🎂</span>
+      <h2 class="page-heading" style="font-size:clamp(36px,5vw,58px);">Happy <em>Birthday,</em><br>Fathima</h2>
+      <div class="divider"></div>
+      <div class="page-body">
+        <p>We never made big promises.</p>
+        <p>Maybe because what we have feels stronger than words.</p>
+        <p>You didn't just become part of my life — you changed how I see myself.</p>
+        <p>You made me feel special.</p>
+        <div class="highlight">Thank you for choosing me.<br>Thank you for staying.</div>
+      </div>
+      <div class="birthday-hearts">❤️ 🌙 ✨</div>
+      <p class="birthday-signature">— Always yours, Shabaz</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Generate stars
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 2.5 + 0.5;
+  s.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    --d:${2 + Math.random()*4}s;
+    animation-delay:${Math.random()*4}s;
+  `;
+  starsEl.appendChild(s);
+}
+
+// Generate petals
+const petalsEl = document.getElementById('petals');
+const petalSymbols = ['🌸','✿','❀','🌺'];
+for (let i = 0; i < 8; i++) {
+  const p = document.createElement('div');
+  p.className = 'petal';
+  p.textContent = petalSymbols[Math.floor(Math.random()*petalSymbols.length)];
+  p.style.cssText = `
+    left:${Math.random()*100}%;
+    --fall-d:${8 + Math.random()*12}s;
+    --fall-delay:${Math.random()*15}s;
+  `;
+  petalsEl.appendChild(p);
+}
+
+// Navigation
+const pages = document.querySelectorAll('.page');
+const navDots = document.getElementById('navDots');
+pages.forEach((_, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'nav-dot';
+  dot.title = `Page ${i + 1}`;
+  dot.addEventListener('click', () => scrollToPage(i));
+  navDots.appendChild(dot);
+});
+
+function scrollToPage(i) {
+  pages[i].scrollIntoView({ behavior: 'smooth' });
+}
+
+// Intersection observer for animations and active dot
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      const idx = Array.from(pages).indexOf(entry.target);
+      document.querySelectorAll('.nav-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === idx);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+pages.forEach(p => observer.observe(p));
+</script>
+</body>
+</html>
